@@ -1,4 +1,7 @@
 #pragma once
+#pragma comment(lib,"glew32.lib")
+#pragma comment(lib,"glew32s.lib")
+#pragma comment(lib,"assimp-vc140-mt.lib")
 #include <array>
 #include <cmath>
 #include <glm/glm.hpp>

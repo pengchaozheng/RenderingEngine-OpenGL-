@@ -1,5 +1,5 @@
-#include "mesh.h"
 
+#include "mesh.h"
 Mesh::Mesh(std::vector<Vertex> vertices, std::vector<std::array<unsigned int, 3>> faces, std::vector<unsigned int> indices, 
 	std::vector<std::vector<unsigned int>> adjacentFaces, std::vector<Texture> textures, Material mat)
 {
