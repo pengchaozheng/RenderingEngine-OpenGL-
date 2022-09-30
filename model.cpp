@@ -1,9 +1,22 @@
 #include "model.h"
 
+Model::~Model() {
+	if (nullptr != mShader) {
+		delete mShader;
+		mShader = nullptr;
+	}
+}
+
+//for replace shader
 void Model::Draw(const Shader& shader)
 {
 	for (auto& i : meshes)
 		i.Draw(shader);
+}
+//for own Shader
+void Model::Draw() {
+	for (auto& i : meshes)
+		i.Draw(*mShader);
 }
 void Model::LoadModel(const std::string& path)
 {

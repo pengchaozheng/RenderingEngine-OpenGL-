@@ -24,13 +24,18 @@ class Model
 {
 public:
 	Model() = default;
+	~Model();
+	__forceinline void SetShader(Shader* shader) { mShader = shader; }
+	__forceinline Shader* GetShader() { return mShader; }
+	void Update(float deltaTime) {}
 	void LoadModel(const std::string& path);
 	void Draw(const Shader& shader);
+	void Draw();
 private:
 	std::vector<Texture> textures_loaded;
 	std::vector<Mesh> meshes;
 	std::string directory;
-
+	Shader* mShader;
 	void ProcessNode(aiNode* node, const aiScene* scene);
 	Mesh ProcessMesh(aiMesh* mesh, const aiScene* scene);
 	void LoadMaterialTextures(std::vector<Texture>& textures, aiMaterial* mat, aiTextureType type,

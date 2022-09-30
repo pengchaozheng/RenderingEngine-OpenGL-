@@ -12,7 +12,7 @@
 #include "shader.h"
 #include "texture.h"
 
-// vertex 요소(위치, normal vector, UV coordinates)
+
 struct Vertex
 {
 	glm::vec3 position;

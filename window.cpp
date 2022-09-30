@@ -14,13 +14,19 @@ Window::Window(unsigned int width, unsigned int height, const char* windowTitle)
 	lastFrame = 0.0f;
 
 	windowHandle = this;
-
-	renderer = nullptr;
+	mWorld = new World();
 }
 Window::~Window()
 {
 	windowHandle = nullptr;
-	delete renderer;
+	if (nullptr != mWorld) {
+		delete mWorld;
+	}
+	for (int i = 0; i < mRenderers.size(); i++) {
+		if (mRenderers[i] != nullptr) {
+			delete(mRenderers[i]);
+		}
+	}
 }
 void Window::Initialize()
 {
@@ -38,13 +44,13 @@ void Window::Initialize()
 	{
 		return;
 	}
-
-	renderer = new Renderer();
+	mWorld->Initialize();
+	SceneRenderer* sceneRenderer = new SceneRenderer(mWorld);
+	mRenderers.push_back(sceneRenderer);
 }
 void Window::Run()
 {
 	glEnable(GL_DEPTH_TEST);
-	float aspect = static_cast<float>(width) / static_cast<float>(height);
 	while (!glfwWindowShouldClose(window))
 	{
 		float currentFrame = static_cast<float>(glfwGetTime());
@@ -52,11 +58,21 @@ void Window::Run()
 		lastFrame = currentFrame;
 
 		ProcessInput();
-		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+		glClearColor(1.f, 1.f, 1.f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		renderer->Render(aspect);
-
+		mWorld->Update(deltaTime);
+		for (int i = 0; i < mRenderers.size(); i++) {
+			IRenderer* renderer = mRenderers[i];
+			if (nullptr != renderer) {
+				renderer->Update(deltaTime);
+			}
+		}
+		for (int i = 0; i < mRenderers.size(); i++) {
+			IRenderer* renderer = mRenderers[i];
+			if (nullptr != renderer) {
+				renderer->Render();
+			}
+		}
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
@@ -77,7 +93,7 @@ bool Window::GLFWInitialize()
 	}
 
 	glfwWindowHint(GLFW_SAMPLES, 1);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 #ifdef __APPLE__
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // To make MacOS happy; should not be needed
@@ -120,7 +136,7 @@ bool Window::GLEWInitialize()
 }
 void Window::ProcessInput()
 {
-	Camera* currentCamera = renderer->GetCamera();
+	Camera* currentCamera = mWorld->GetMainCamera();
 
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
@@ -143,7 +159,7 @@ void Window::FramebufferSize(GLFWwindow* window, int width, int height)
 }
 void Window::Mouse(GLFWwindow* window, double xPos, double yPos)
 {
-	Camera* currentCamera = renderer->GetCamera();
+	Camera* currentCamera = mWorld->GetMainCamera();
 
 	if (firstMouse)
 	{
@@ -162,7 +178,7 @@ void Window::Mouse(GLFWwindow* window, double xPos, double yPos)
 }
 void Window::Scroll(GLFWwindow* window, double xOffset, double yOffset)
 {
-	Camera* currentCamera = renderer->GetCamera();
+	Camera* currentCamera = mWorld->GetMainCamera();
 	currentCamera->ProcessMouseScroll(yOffset);
 }
 static void FramebufferSizeCallback(GLFWwindow* window, int width, int height)

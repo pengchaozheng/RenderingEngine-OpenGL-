@@ -2,14 +2,18 @@
 #include <GLFW/glfw3.h>
 #include <GL/glew.h>
 #include <iostream>
-#include "renderer.h"
+#include <vector>
+#include "SceneRenderer.h"
 #include "texture.h"
-
+#include "World.h"
 class Window
 {
 public:
 	Window(unsigned int width, unsigned int height, const char* windowTitle);
 	Window(const Window&) = delete;
+	/*__forceinline void AddRenderer(IRenderer* renderer) noexcept {
+		mRenderers.push_back(renderer);
+	};*/
 	~Window();
 
 	void Initialize();
@@ -18,7 +22,7 @@ public:
 
 	unsigned int GetWidth();
 	unsigned int GetHeight();
-
+	__forceinline World* GetWorld() noexcept { return mWorld; };
 	void FramebufferSize(GLFWwindow* window, int width, int height);
 	void Mouse(GLFWwindow* window, double xPos, double yPos);
 	void Scroll(GLFWwindow* window, double xOffset, double yOffset);
@@ -39,8 +43,8 @@ private:
 	float lastFrame;
 
 	// Renderer º¯¼ö
-	Renderer* renderer;
-
+	std::vector<IRenderer*> mRenderers;
+	World* mWorld;
 	bool GLFWInitialize();
 	bool CreateWindow();
 	bool GLEWInitialize(); // If you call this method, you must call GLFWInitialize before.
