@@ -9,6 +9,8 @@ public:
 	void Bind() const;
 	__forceinline int  height() const noexcept { return mHeight;}
 	__forceinline int  width() const noexcept {return mWidth;}
+	__forceinline GLuint textureColor() const noexcept { return mTexColor; }
+	__forceinline GLuint textureDepth() const noexcept { return mTexDepth; }
 	__forceinline GLenum formatColor() const noexcept {return mFormatColor;}
 	__forceinline GLenum formatDepth() const noexcept { return mFormatDepth; }
 	__forceinline void SetClearColor(glm::vec4 color) { mClearColor = color; }

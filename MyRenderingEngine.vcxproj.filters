@@ -103,6 +103,12 @@
     <None Include="Shaders\depthOnly_frag.glsl">
       <Filter>Resource Files\Shaders</Filter>
     </None>
+    <None Include="Shaders\edgeDetect_frag.glsl">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\edgeDetect_vert.glsl">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\depthOnly_vert.glsl">

@@ -22,8 +22,28 @@ RenderTexture::RenderTexture(int width, int height, int depth,  GLenum formatCol
 	if (mFormatColor) {
 		glGenTextures(1, &mTexColor);
 		glBindTexture(GL_TEXTURE_2D, mTexColor);
-		glTexImage2D(GL_TEXTURE_2D,0, formatColor, mWidth,mHeight,0,GL_RGBA,GL_UNSIGNED_BYTE,0);
-		glFramebufferTexture2D(GL_DRAW_BUFFER,GL_COLOR_ATTACHMENT0,GL_TEXTURE_2D, mTexColor,0);
+		if (formatColor == GL_R16F) {
+			glTexImage2D(GL_TEXTURE_2D, 0, formatColor, mWidth, mHeight, 0, GL_RED, GL_HALF_FLOAT, 0);
+		}
+		else if(formatColor == GL_R32F) {
+			glTexImage2D(GL_TEXTURE_2D, 0, formatColor, mWidth, mHeight, 0, GL_RED, GL_FLOAT, 0);
+		}
+		else if (formatColor == GL_R8) {
+			glTexImage2D(GL_TEXTURE_2D, 0, formatColor, mWidth, mHeight, 0, GL_RED, GL_UNSIGNED_BYTE, 0);
+		}
+		else if (formatColor == GL_RG8) {
+			glTexImage2D(GL_TEXTURE_2D, 0, formatColor, mWidth, mHeight, 0, GL_RG, GL_UNSIGNED_BYTE, 0);
+		}
+		else if (formatColor == GL_RGB8) {
+			glTexImage2D(GL_TEXTURE_2D, 0, formatColor, mWidth, mHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+		}
+		else if (formatColor == GL_RGBA8) {
+			glTexImage2D(GL_TEXTURE_2D, 0, formatColor, mWidth, mHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+		}
+		else if (formatColor == GL_R32I) {
+			glTexImage2D(GL_TEXTURE_2D, 0, formatColor, mWidth, mHeight, 0, GL_R, GL_INT, 0);
+		}
+		glFramebufferTexture2D(GL_FRAMEBUFFER,GL_COLOR_ATTACHMENT0,GL_TEXTURE_2D, mTexColor,0);
 	}
 	if (mFormatDepth) {
 		glGenTextures(1,&mTexDepth);

@@ -183,6 +183,8 @@
     <None Include="Shaders\depthOnly_frag.glsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </None>
+    <None Include="Shaders\edgeDetect_frag.glsl" />
+    <None Include="Shaders\edgeDetect_vert.glsl" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\depthOnly_vert.glsl">

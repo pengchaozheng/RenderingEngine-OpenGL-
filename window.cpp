@@ -1,5 +1,6 @@
 #include "window.h"
 #include"DepthOnlyPass.h"
+#include"PostprocessRenderer.h"
 Window::Window(unsigned int width, unsigned int height, const char* windowTitle)
 {
 	this->width = width;
@@ -48,6 +49,8 @@ void Window::Initialize()
 
 	DepthOnlyPass* depthOnlyRenderer = new DepthOnlyPass(mWorld);
 	mRenderers.push_back(depthOnlyRenderer);
+	EdgeDetectRenderer* edgeRender = new EdgeDetectRenderer(depthOnlyRenderer);
+	mRenderers.push_back(edgeRender);
 
 	SceneRenderer* sceneRenderer = new SceneRenderer(mWorld);
 	mRenderers.push_back(sceneRenderer);

@@ -575,11 +575,13 @@ void PostMesh::SetupMesh() {
 	glGenBuffers(1, &vertexBufferID);
 	glBindBuffer(GL_ARRAY_BUFFER, vertexBufferID);
 	glBufferData(GL_ARRAY_BUFFER, verts.size() * sizeof(glm::vec2), &verts[0], GL_STATIC_DRAW);
+	glVertexAttribPointer(0,2,GL_FLOAT,GL_FALSE,0,(void*)0);
+	glEnableVertexAttribArray(0);
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 void PostMesh::Draw(const Shader& shader) {
-	glBindVertexArray(vertexBufferID);
+	glBindVertexArray(vertexArrayID);
 	glDrawArrays(GL_TRIANGLE_STRIP,0,4);
 }
 PostMesh::~PostMesh() {
