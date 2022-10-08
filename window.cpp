@@ -1,5 +1,5 @@
 #include "window.h"
-
+#include"DepthOnlyPass.h"
 Window::Window(unsigned int width, unsigned int height, const char* windowTitle)
 {
 	this->width = width;
@@ -45,8 +45,13 @@ void Window::Initialize()
 		return;
 	}
 	mWorld->Initialize();
+
+	DepthOnlyPass* depthOnlyRenderer = new DepthOnlyPass(mWorld);
+	mRenderers.push_back(depthOnlyRenderer);
+
 	SceneRenderer* sceneRenderer = new SceneRenderer(mWorld);
 	mRenderers.push_back(sceneRenderer);
+
 }
 void Window::Run()
 {
@@ -58,7 +63,7 @@ void Window::Run()
 		lastFrame = currentFrame;
 
 		ProcessInput();
-		glClearColor(1.f, 1.f, 1.f, 1.0f);
+		glClearColor(0.f, 0.f, 0.f, 0.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		mWorld->Update(deltaTime);
 		for (int i = 0; i < mRenderers.size(); i++) {

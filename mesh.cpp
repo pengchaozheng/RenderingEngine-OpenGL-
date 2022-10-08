@@ -563,3 +563,30 @@ GLuint Mesh::CreateAdjacentFaceCountTexture()
 
 	return textureID;
 }
+
+PostMesh::PostMesh() {
+	SetupMesh();
+}
+
+void PostMesh::SetupMesh() {
+	std::vector<glm::vec2> verts{ glm::vec2(0.f,0.f),glm::vec2(1.f,0.f), glm::vec2(0.f,1.f), glm::vec2(1.f,1.f) };
+	glGenVertexArrays(1, &vertexArrayID);
+	glBindVertexArray(vertexArrayID);
+	glGenBuffers(1, &vertexBufferID);
+	glBindBuffer(GL_ARRAY_BUFFER, vertexBufferID);
+	glBufferData(GL_ARRAY_BUFFER, verts.size() * sizeof(glm::vec2), &verts[0], GL_STATIC_DRAW);
+	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+void PostMesh::Draw(const Shader& shader) {
+	glBindVertexArray(vertexBufferID);
+	glDrawArrays(GL_TRIANGLE_STRIP,0,4);
+}
+PostMesh::~PostMesh() {
+	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glDeleteVertexArrays(1, &vertexArrayID);
+	glDeleteBuffers(1,&vertexBufferID);
+	vertexArrayID = 0;
+	vertexBufferID = 0;
+}

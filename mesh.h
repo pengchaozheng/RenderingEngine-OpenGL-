@@ -31,28 +31,32 @@ struct Vertex
 	float dt1q1;
 };
 
-// mtl파일에 쓰여있는 ka(ambient color), kd(diffuse color), ks(specular color)
 struct Material
 {
 	glm::vec3 ka;
 	glm::vec3 kd;
 	glm::vec3 ks;
 };
-
-class Mesh
+class IMesh {
+public:
+	virtual void SetupMesh() = 0;
+	virtual void Draw(const Shader& shader) =0;
+};
+class Mesh :IMesh
 {
 public:
 	Mesh(std::vector<Vertex> vertices, std::vector<std::array<unsigned int, 3>> faces, std::vector<unsigned int> indices, 
 		std::vector<std::vector<unsigned int>> adjacentFaces, std::vector<Texture> textures, Material mat);
-	void Draw(const Shader& shader);
+	
+	virtual void Draw(const Shader& shader) override;
 private:
-	std::vector<Vertex> vertices; // vertex 집합
-	std::vector<std::array<unsigned int, 3>> faces; // face 집합
+	std::vector<Vertex> vertices; 
+	std::vector<std::array<unsigned int, 3>> faces; 
 	std::vector<std::vector<unsigned int>> adjacentFaces;
 	std::vector<glm::vec3> cornerAreas;
-	std::vector<unsigned int> indices; // index 집합
-	std::vector<Texture> textures; // texture 집합
-	Material mat; // mtl 파일 요소 집합
+	std::vector<unsigned int> indices; 
+	std::vector<Texture> textures; 
+	Material mat; 
 	
 	GLuint vertexArrayID;
 	GLuint vertexBufferID;
@@ -62,12 +66,23 @@ private:
 	GLuint adjacentFaceCountID;
 	GLuint adjacentFaceID;
 
-	void SetupMesh(); // Mesh를 구성함
+	virtual void SetupMesh() override; 
 	void CalculatePointAreas();
-	void CalculatePrincipalCurvatures(); // principal curvatures 계산
+	void CalculatePrincipalCurvatures(); 
 	void CalculateDerivativeCurvature();
 	GLuint CreateAdjacentFaceCountTexture();
-	// GLuint CreateAdjacentFaceTexture(); // adjacent face texture 생성
+};
+
+class PostMesh :IMesh {
+public:
+	PostMesh();
+	virtual ~PostMesh();
+	virtual void SetupMesh() override;
+	virtual void Draw(const Shader& shader) override;
+private:
+	//const std::vector<glm::vec2> verts{ glm::vec2(0.f,0.f),glm::vec2(1.f,0.f), glm::vec2(0.f,1.f), glm::vec2(1.f,1.f) };
+	GLuint vertexBufferID;
+	GLuint vertexArrayID;
 };
 
 // Principal Curvatures
