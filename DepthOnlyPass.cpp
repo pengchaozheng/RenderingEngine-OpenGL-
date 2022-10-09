@@ -20,10 +20,10 @@ DepthOnlyPass::~DepthOnlyPass() {
 void DepthOnlyPass::Update(float deltaTime) {
 	model = glm::mat4(1);
 	Camera* mainCam = mWorld->GetMainCamera();
-	glm::vec3  worldUp = mainCam->front;
+	glm::vec3  worldUp = mainCam->dir();
 	worldUp.y = 0;
 	worldUp = glm::normalize(worldUp);
-	glm::vec3 center = mainCam->position + worldUp * orthoDepth ;
+	glm::vec3 center = mainCam->eye() + worldUp * orthoDepth;
 	view = glm::lookAt(center, center +glm::vec3(0.f,-3.f,0.f), worldUp);
 	projection = glm::ortho(-1*orthoWidth, orthoWidth,-1.f* orthoHeight,orthoHeight, -1*orthoDepth, orthoDepth);
 }

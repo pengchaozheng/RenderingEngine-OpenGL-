@@ -1,15 +1,12 @@
 #include "window.h"
 #include"DepthOnlyPass.h"
 #include"PostprocessRenderer.h"
+#include"event_handler.h"
 Window::Window(unsigned int width, unsigned int height, const char* windowTitle)
 {
 	this->width = width;
 	this->height = height;
 	this->windowTitle = windowTitle;
-
-	this->lastX = width / 2;
-	this->lastY = height / 2;
-	firstMouse = true;
 
 	deltaTime = 0.0f;
 	lastFrame = 0.0f;
@@ -54,7 +51,8 @@ void Window::Initialize()
 
 	SceneRenderer* sceneRenderer = new SceneRenderer(mWorld);
 	mRenderers.push_back(sceneRenderer);
-
+	static glfwCallbackData cb{ mWorld->GetMainCamera()};
+	glfwSetWindowUserPointer(window, &cb);
 }
 void Window::Run()
 {
@@ -64,8 +62,6 @@ void Window::Run()
 		float currentFrame = static_cast<float>(glfwGetTime());
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
-
-		ProcessInput();
 		glClearColor(0.f, 0.f, 0.f, 0.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		mWorld->Update(deltaTime);
@@ -123,9 +119,9 @@ bool Window::CreateWindow()
 
 	glfwMakeContextCurrent(window);
 	glfwSetFramebufferSizeCallback(window, FramebufferSizeCallback);
-	glfwSetCursorPosCallback(window, MouseCallback);
-	glfwSetScrollCallback(window, ScrollCallback);
-
+	glfwSetKeyCallback(window, glfwindow_key_cb);
+	glfwSetMouseButtonCallback(window, glfwindow_mouseButton_cb);
+	glfwSetCursorPosCallback(window, glfwindow_mouseMotion_cb);
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	return true;
@@ -142,62 +138,11 @@ bool Window::GLEWInitialize()
 
 	return true;
 }
-void Window::ProcessInput()
-{
-	Camera* currentCamera = mWorld->GetMainCamera();
-
-	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-		glfwSetWindowShouldClose(window, true);
-
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-		currentCamera->ProcessKeyboard(FORWARD, deltaTime);
-	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		currentCamera->ProcessKeyboard(BACKWARD, deltaTime);
-	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		currentCamera->ProcessKeyboard(LEFT, deltaTime);
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		currentCamera->ProcessKeyboard(RIGHT, deltaTime);
-
-	/* if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS)
-		SaveScreenshot(fileName); */
-}
 void Window::FramebufferSize(GLFWwindow* window, int width, int height)
 {
 	glViewport(0, 0, width, height);
 }
-void Window::Mouse(GLFWwindow* window, double xPos, double yPos)
-{
-	Camera* currentCamera = mWorld->GetMainCamera();
-
-	if (firstMouse)
-	{
-		lastX = xPos;
-		lastY = yPos;
-		firstMouse = false;
-	}
-
-	float xOffset = xPos - lastX;
-	float yOffset = lastY - yPos;
-
-	lastX = xPos;
-	lastY = yPos;
-
-	currentCamera->ProcessMouseMovement(xOffset, yOffset);
-}
-void Window::Scroll(GLFWwindow* window, double xOffset, double yOffset)
-{
-	Camera* currentCamera = mWorld->GetMainCamera();
-	currentCamera->ProcessMouseScroll(yOffset);
-}
 static void FramebufferSizeCallback(GLFWwindow* window, int width, int height)
 {
 	windowHandle->FramebufferSize(window, width, height);
-}
-static void MouseCallback(GLFWwindow* window, double xPos, double yPos)
-{
-	windowHandle->Mouse(window, xPos, yPos);
-}
-static void ScrollCallback(GLFWwindow* window, double xOffset, double yOffset)
-{
-	windowHandle->Scroll(window, xOffset, yOffset);
 }

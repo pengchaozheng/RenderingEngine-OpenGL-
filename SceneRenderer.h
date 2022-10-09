@@ -19,7 +19,7 @@ public:
 	virtual void Update(float deltaTime) override;
 private:
 	// Shader 
-	Shader* currentShader;
+	Shader* defaultShader;
 protected:
 	// matrix 
 	glm::mat4 projection;

@@ -1,78 +1,201 @@
+//=================================================================================//
+// Copyright (c) 2021 Yaochuang Ding 
+//=================================================================================//
+
 #include "camera.h"
 
-Camera::Camera(glm::vec3 _position, glm::vec3 _up, float _yaw, float _pitch) : front(glm::vec3(0.0f, 0.0f, -1.0f)), movementSpeed(SPEED), mouseSensitivity(SENSITIVITY), zoom(ZOOM)
-{
-	this->position = _position;
-	this->worldUp = _up;
-	this->yaw = _yaw;
-	this->pitch = _pitch;
-	UpdateCameraVectors();
-}
-Camera::Camera(float posX, float posY, float posZ, float upX, float upY, float upZ, 
-	float _yaw, float _pitch) : front(glm::vec3(0.0f, 0.0f, -1.0f)), movementSpeed(SPEED), mouseSensitivity(SENSITIVITY), zoom(ZOOM)
-{
-	this->position = glm::vec3(posX, posY, posZ);
-	this->worldUp = glm::vec3(upX, upY, upZ);
-	this->yaw = _yaw;
-	this->pitch = _pitch;
-	UpdateCameraVectors();
-}
-glm::mat4 Camera::GetViewMatrix() { return glm::lookAt(position, position + front, up); }
-void Camera::ProcessKeyboard(CameraMovement direction, float deltaTime)
-{
-	float velocity = movementSpeed * deltaTime;
-	switch (direction)
-	{
-	case FORWARD:
-		position += front * velocity;
-		break;
-	case BACKWARD:
-		position -= front * velocity;
-		break;
-	case LEFT:
-		position -= right * velocity;
-		break;
-	case RIGHT:
-		position += right * velocity;
-		break;
-	}
-	UpdateCameraVectors();
-}
-void Camera::ProcessMouseMovement(float xOffset, float yOffset, GLboolean constraintPitch)
-{
-	xOffset *= mouseSensitivity;
-	yOffset *= mouseSensitivity;
+/////////////////////////// Helper functions //////////////////////////////////
 
-	yaw += xOffset;
-	pitch += yOffset;
-
-	if (constraintPitch)
-	{
-		if (pitch > 89.0f)
-			pitch = 89.0f;
-		if (pitch < -89.0f)
-			pitch = -89.0f;
-	}
-	UpdateCameraVectors();
-}
-void Camera::ProcessMouseScroll(float yOffset)
+static inline float degreesToRadians(float degrees)
 {
-	zoom += static_cast<float>(yOffset);
-	
-	if (zoom < 1.0f)
-		zoom = 1.0f;
-	if (zoom > 45.0f)
-		zoom = 45.0f;
-	// UpdateCameraVectors();
+    return degrees * M_PI / 180.f;
 }
-void Camera::UpdateCameraVectors()
-{
-	glm::vec3 _front;
-	_front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-	_front.y = sin(glm::radians(pitch));
-	_front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-	front = glm::normalize(_front);
 
-	right = glm::normalize(glm::cross(front, worldUp));
-	up = glm::normalize(glm::cross(right, front));
+static glm::vec3 azelToDirection(float az, float el, OrbitAxis axis)
+{
+    //< x, y, z order(z is up) is different with camera (y is up)
+    const float x = std::cos(az) * std::cos(el);
+    const float y = std::sin(az) * std::cos(el);
+    const float z = std::sin(el);
+
+    switch (axis)
+    {
+    case OrbitAxis::POS_X:
+        return -normalize(glm::vec3(z, y, x));
+    case OrbitAxis::POS_Y:
+        return -normalize(glm::vec3(x, z, y));
+    case OrbitAxis::POS_Z:
+        return -normalize(glm::vec3(x, y, z));
+    case OrbitAxis::NEG_X:
+        return normalize(glm::vec3(z, y, x));
+    case OrbitAxis::NEG_Y:
+        return normalize(glm::vec3(x, z, y));
+    case OrbitAxis::NEG_Z:
+        return normalize(glm::vec3(x, y, z));
+    }
+    return {};
+}
+
+static OrbitAxis negateAxis(OrbitAxis current)
+{
+    switch (current)
+    {
+    case OrbitAxis::POS_X:
+        return OrbitAxis::NEG_X;
+    case OrbitAxis::POS_Y:
+        return OrbitAxis::NEG_Y;
+    case OrbitAxis::POS_Z:
+        return OrbitAxis::NEG_Z;
+    case OrbitAxis::NEG_X:
+        return OrbitAxis::POS_X;
+    case OrbitAxis::NEG_Y:
+        return OrbitAxis::POS_Y;
+    case OrbitAxis::NEG_Z:
+        return OrbitAxis::POS_Z;
+    }
+    return {};
+}
+
+static float maintainUnitCircle(float inDegrees)
+{
+    while (inDegrees > 360.f)
+        inDegrees -= 360.f;
+    while (inDegrees < 0.f)
+        inDegrees += 360.f;
+    return inDegrees;
+}
+
+////////////////////////// Class Camera definitions //////////////////////////////////
+
+Camera::Camera(glm::vec3 at, float dist, glm::vec2 azel)
+    : m_at(at), m_distance(dist), m_azel(azel)
+{
+    m_speed = m_distance; // longer, faster
+    Update(0);
+}
+
+void Camera::startNewRotation()
+{
+    m_invertRotation = m_azel.y > 90.f && m_azel.y < 270.f;
+}
+
+void Camera::rotate(glm::vec2 delta)
+{
+    delta *= 100;
+    delta.x = m_invertRotation ? delta.x : -delta.x;
+    delta.y = m_distance < 0.f ? -delta.y : delta.y;
+    m_azel += delta;
+    m_azel.x = maintainUnitCircle(m_azel.x);
+    m_azel.y = maintainUnitCircle(m_azel.y);
+    Update(0);
+}
+
+void Camera::zoom(float delta)
+{
+    m_distance += m_speed * delta;
+    m_speed = m_distance;
+    Update(0);
+}
+
+void Camera::pan(glm::vec2 delta)
+{
+    delta *= m_speed;
+    delta.y = -delta.y;
+
+    const glm::vec3 amount = delta.x * m_right + delta.y * m_up;
+
+    m_eye += amount;
+    m_at += amount;
+
+    Update(0);
+}
+
+void Camera::setAxis(OrbitAxis axis)
+{
+    m_axis = axis;
+    Update(0);
+}
+
+glm::vec2 Camera::azel() const
+{
+    return m_azel;
+}
+
+glm::vec3 Camera::eye() const
+{
+    return m_eye;
+}
+
+glm::vec3 Camera::dir() const
+{
+    return glm::normalize(m_at - m_eye);
+}
+
+glm::vec3 Camera::up() const
+{
+    return m_up;
+}
+
+#include <cassert>
+#include <limits>
+void Camera::Update(float deltaTime)
+{
+    const float distance = std::abs(m_distance);
+
+    const OrbitAxis axis = m_distance < 0.f ? negateAxis(m_axis) : m_axis;
+
+    const float azimuth = degreesToRadians(m_azel.x);
+    const float elevation = degreesToRadians(m_azel.y);
+
+    const glm::vec3 toLocalOrbit = azelToDirection(azimuth, elevation, axis);
+
+    const glm::vec3 localOrbitPos = toLocalOrbit * distance;
+    const glm::vec3 fromLocalOrbit = -localOrbitPos;
+
+    const glm::vec3 alteredElevation = azelToDirection(azimuth, elevation - 3, m_axis);
+
+    const glm::vec3 cameraRight = glm::cross(toLocalOrbit, alteredElevation);
+    const glm::vec3 cameraUp = glm::cross(cameraRight, fromLocalOrbit);
+
+    m_eye = localOrbitPos + m_at;
+    m_up = glm::normalize(cameraUp);
+    m_right = glm::normalize(cameraRight);
+
+    m_forward = this->dir();
+
+    m_viewMatrix[0][0] = m_right.x;
+    m_viewMatrix[1][0] = m_right.y;
+    m_viewMatrix[2][0] = m_right.z;
+    m_viewMatrix[0][1] = m_up.x;
+    m_viewMatrix[1][1] = m_up.y;
+    m_viewMatrix[2][1] = m_up.z;
+    m_viewMatrix[0][2] = -m_forward.x;
+    m_viewMatrix[1][2] = -m_forward.y;
+    m_viewMatrix[2][2] = -m_forward.z;
+    m_viewMatrix[3][0] = -dot(m_right, m_eye);
+    m_viewMatrix[3][1] = -dot(m_up, m_eye);
+    m_viewMatrix[3][2] = dot(m_forward, m_eye);
+
+
+    assert(std::fabs(m_aspect - std::numeric_limits<float>::epsilon()) > static_cast<float>(0));
+
+    float const tanHalfFovy = std::tanf(degreesToRadians(m_fovy * 0.5f));
+
+    m_projMatrix[0][0] = static_cast<float>(1) / (m_aspect * tanHalfFovy);
+    m_projMatrix[1][1] = static_cast<float>(1) / (tanHalfFovy);
+    m_projMatrix[2][2] = -(m_zFar + m_zNear) / (m_zFar - m_zNear);
+    m_projMatrix[2][3] = -static_cast<float>(1);
+    m_projMatrix[3][2] = -(static_cast<float>(2) * m_zFar * m_zNear) / (m_zFar - m_zNear);
+}
+
+glm::mat4 Camera::viewMatrix() const
+{
+    //< use RH coordinate
+    return m_viewMatrix;
+}
+
+glm::mat4 Camera::projMatrix() const
+{
+    //< use RH coordinate
+    return m_projMatrix;
 }

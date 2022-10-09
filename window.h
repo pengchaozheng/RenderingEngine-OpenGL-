@@ -24,8 +24,6 @@ public:
 	unsigned int GetHeight();
 	__forceinline World* GetWorld() noexcept { return mWorld; };
 	void FramebufferSize(GLFWwindow* window, int width, int height);
-	void Mouse(GLFWwindow* window, double xPos, double yPos);
-	void Scroll(GLFWwindow* window, double xOffset, double yOffset);
 private:
 	// window 변수
 	GLFWwindow* window;
@@ -33,10 +31,7 @@ private:
 	GLuint width;
 	GLuint height;
 
-	// mouse 변수
-	float lastX;
-	float lastY;
-	bool firstMouse;
+
 
 	// frame 변수
 	float deltaTime;
@@ -48,11 +43,8 @@ private:
 	bool GLFWInitialize();
 	bool CreateWindow();
 	bool GLEWInitialize(); // If you call this method, you must call GLFWInitialize before.
-	void ProcessInput();
 };
 
 static void FramebufferSizeCallback(GLFWwindow* window, int width, int height);
-static void MouseCallback(GLFWwindow* window, double xPos, double yPos);
-static void ScrollCallback(GLFWwindow* window, double xOffset, double yOffset);
 
 static Window* windowHandle = nullptr;

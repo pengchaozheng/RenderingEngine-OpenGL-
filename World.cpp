@@ -1,6 +1,6 @@
 #include "World.h"
 World::World() {
-	mMainCamera = new Camera(glm::vec3(0.0f, 0.0f, 3.0f));
+	mMainCamera = new Camera(glm::vec3(0.f,0.f,0.f),2);
 }
 
 World::~World() {
@@ -21,7 +21,7 @@ void World::Initialize() {
 	Model* object = new Model();
 	mSun = glm::vec3(1.0f, glm::sqrt(3.0f), -glm::sqrt(3.0f));
 	object->LoadModel("teapot/teapot.obj");
-	Shader* shader = new Shader("teapot.vshader", "teapot.fshader");
+	Shader* shader = new Shader(".\\Shaders\\teapot.vshader", ".\\Shaders\\teapot.fshader");
 	shader->BuildShader();
 	object->SetShader(shader);
 	mObjects.push_back(object);

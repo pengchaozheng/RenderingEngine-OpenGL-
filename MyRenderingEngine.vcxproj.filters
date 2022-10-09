@@ -57,6 +57,9 @@
     <ClCompile Include="PostprocessRenderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="event_handler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SceneRenderer.h">
@@ -98,6 +101,9 @@
     <ClInclude Include="PostprocessRenderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="event_handler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\depthOnly_frag.glsl">
@@ -109,9 +115,15 @@
     <None Include="Shaders\edgeDetect_vert.glsl">
       <Filter>Resource Files\Shaders</Filter>
     </None>
+    <None Include="Shaders\teapot.fshader">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\depthOnly_vert.glsl">
+      <Filter>Resource Files\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\teapot.vshader">
       <Filter>Resource Files\Shaders</Filter>
     </FxCompile>
   </ItemGroup>
